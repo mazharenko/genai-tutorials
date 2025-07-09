@@ -8,9 +8,6 @@ from rich.markdown import Markdown
 from langchain_openai import ChatOpenAI
 from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe_agent
 from langchain.agents import AgentType
-from langchain_community.chat_message_histories import ChatMessageHistory
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.runnables.history import RunnableWithMessageHistory
 import os
 import pandas as pd
 import numpy as np
@@ -74,23 +71,29 @@ console.print("""
 try:
     while True:
         user_input = Prompt.ask("[bold yellow]You[/]")
-        result = agent.invoke(
-            {
-                "input": user_input,
-                "agent_scratchpad": f"Human: {user_input}\nAI: To answer this question, I need to use Python to analyze the dataframe. I'll use the python_repl_ast tool.\n\nAction: python_repl_ast\nAction Input: ",
-            }
-        )
+
         console.print()
         console.print("[bold green]AI:[/]")
-        console.print(Padding(
-            Group(
-                Pretty(result['intermediate_steps']),
-                "",
-                Markdown(result['output'])
-            ),
-            (0, 2, 0, 2))
-        )
-        console.print()
+        with console.status("calling the LLM"):
+            steps = agent.iter(
+                {
+                    "input": user_input,
+                    "agent_scratchpad": f"""
+                        Human: {user_input}\nAI: To answer this question, I need to use Python to analyze the dataframe.
+                        I'll use the python_repl_ast tool and pandas lib only.
+
+                        Action: python_repl_ast
+
+                        Action Input:
+                    """,
+                }
+            )
+            for step in steps:
+                if output := step.get("intermediate_step"):
+                    console.print(Padding(Pretty(output), (0, 0, 0, 2)))
+                if output := step.get("output"):
+                    console.print(Padding(Markdown(output), (2)))
+
 
 except KeyboardInterrupt:
     ()
