@@ -3,9 +3,13 @@
 A simple conversational agent console application.
 This application allows users to interact with a basic chatbot that maintains
 context across multiple interactions.
+
+Example human messages:
+Hello! How are you?
+What was my previous message?
 """
 
-from rich.console import Console, Group
+from rich.console import *
 from rich.prompt import Prompt
 from rich.padding import Padding
 from rich.pretty import Pretty

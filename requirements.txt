@@ -5,3 +5,6 @@ langchain
 langchain_experimental
 python-dotenv
 langchain_openai
+pandas
+numpy
+tabulate
